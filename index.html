@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
+  <meta name="theme-color" content="#06C755">
+  <meta name="description" content="LINE風のトーク画面で、次々届くメッセージに返信して面白さを競う短編コミュニケーションゲーム。">
+  <title>今日のLINEゲーム</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='24' fill='%2306C755'/><text x='50' y='68' font-size='56' text-anchor='middle'>💬</text></svg>">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="app" class="phone">
+
+    <!-- タイトル画面 -->
+    <section id="screen-title" class="screen active" aria-label="タイトル">
+      <div class="title-inner">
+        <div class="logo">
+          <div class="logo-bubble">今日の<br><span>LINE</span>ゲーム</div>
+        </div>
+        <p class="tagline">次々届くLINEに、いちばん面白い返信を。<br>全5回の返信で、あなたのトーク力を判定します。</p>
+
+        <label class="field">
+          <span>あなたの名前</span>
+          <input id="player-name" type="text" maxlength="12" placeholder="あなた" autocomplete="nickname">
+        </label>
+
+        <div class="field">
+          <span>今日のテーマ</span>
+          <div id="theme-chips" class="chips" role="radiogroup" aria-label="テーマ"></div>
+        </div>
+
+        <button id="start-btn" class="btn-primary">ゲームスタート</button>
+
+        <div class="title-foot">
+          <span id="mode-badge" class="mode-badge">審査モード確認中…</span>
+          <span id="best-score" class="best"></span>
+        </div>
+
+        <details class="rules">
+          <summary>あそびかた</summary>
+          <ol>
+            <li>「今日の〇〇」グループにLINEが届きます。</li>
+            <li>自由に返信を入力して送信しましょう。</li>
+            <li>面白さ・気の利き・意外性・空気読みの4項目で採点（各25点）。</li>
+            <li>5回返信したら総合評価が決まります。最高500pt！</li>
+          </ol>
+          <p class="note">※実在のLINEとは連携しない、LINE風のゲームです。</p>
+        </details>
+      </div>
+    </section>
+
+    <!-- トーク画面 -->
+    <section id="screen-chat" class="screen" aria-label="トーク">
+      <header class="chat-header">
+        <button id="quit-btn" class="icon-btn" aria-label="タイトルに戻る">
+          <svg viewBox="0 0 24 24" width="24" height="24"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <div id="group-icon" class="group-icon">🍚</div>
+        <div class="group-meta">
+          <div id="group-name" class="group-name">今日の飯</div>
+          <div id="group-count" class="group-count">メンバー 4</div>
+        </div>
+        <div class="header-icons" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="22" height="22"><circle cx="11" cy="11" r="6.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M16 16l4 4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          <svg viewBox="0 0 24 24" width="22" height="22"><path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        </div>
+      </header>
+
+      <div class="hud" aria-live="polite">
+        <div class="hud-item"><span class="hud-label">返信</span><b id="hud-round">1/5</b></div>
+        <div class="hud-item hud-score"><span class="hud-label">獲得</span><b id="hud-score">0</b><span class="hud-unit">pt</span></div>
+        <div class="hud-item"><span class="hud-label">残り</span><b id="hud-left">5</b><span class="hud-unit">回</span></div>
+        <div class="hud-dots" id="hud-dots"></div>
+      </div>
+
+      <div id="log" class="chat-log" aria-live="polite"></div>
+
+      <form id="composer" class="composer" autocomplete="off">
+        <span class="composer-plus" aria-hidden="true">＋</span>
+        <textarea id="msg-input" rows="1" maxlength="200" placeholder="メッセージを入力" disabled></textarea>
+        <button id="send-btn" class="send-btn" type="submit" aria-label="送信" disabled>
+          <svg viewBox="0 0 24 24" width="22" height="22"><path d="M3 20l18-8L3 4l2.5 8L3 20z" fill="currentColor"/><path d="M5.5 12H12" stroke="#fff" stroke-width="1.6"/></svg>
+        </button>
+      </form>
+    </section>
+
+    <!-- 結果画面 -->
+    <section id="screen-result" class="screen" aria-label="結果">
+      <div class="result-inner">
+        <div class="result-head">今日のトーク力判定</div>
+        <div class="result-rank">
+          <div id="rank-emoji" class="rank-emoji">👑</div>
+          <div id="rank-title" class="rank-title">LINEの神</div>
+          <div class="result-score"><b id="result-total">0</b><span> / 500 pt</span></div>
+          <p id="rank-text" class="rank-text"></p>
+          <div id="result-new" class="result-new" hidden>🎉 自己ベスト更新！</div>
+        </div>
+        <div id="best-reply" class="best-reply"></div>
+        <h3 class="result-sub">返信の振り返り</h3>
+        <ul id="result-list" class="result-list"></ul>
+        <div class="result-actions">
+          <button id="again-btn" class="btn-primary">もう一度あそぶ</button>
+          <button id="share-btn" class="btn-ghost">結果をコピー</button>
+          <button id="home-btn" class="btn-text">タイトルへ</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 通知バナー -->
+    <div id="notif" class="notif" role="status" hidden>
+      <div class="notif-app"><span class="notif-logo">LINE</span> 今日のLINEゲーム <span class="notif-time">今</span></div>
+      <div class="notif-body">
+        <div id="notif-icon" class="notif-icon">🍚</div>
+        <div>
+          <div id="notif-title" class="notif-title"></div>
+          <div id="notif-text" class="notif-text"></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="toast" class="toast" hidden></div>
+  </div>
+
+  <script type="module" src="js/game.js"></script>
+</body>
+</html>
