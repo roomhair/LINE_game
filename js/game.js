@@ -47,7 +47,13 @@ function init() {
   $("again-btn").onclick = startGame;
   $("home-btn").onclick = () => showScreen("title");
   $("share-btn").onclick = shareResult;
-  $("quit-btn").onclick = () => { if (confirm("ゲームをやめてタイトルに戻りますか？")) { state = null; showScreen("title"); } };
+  // ダイアログが使えない環境もあるので、2回押しで戻る
+  let quitArmed = 0;
+  $("quit-btn").onclick = () => {
+    if (Date.now() - quitArmed < 2500) { state = null; showScreen("title"); return; }
+    quitArmed = Date.now();
+    toast("もう一度押すとタイトルに戻ります");
+  };
 
   const input = $("msg-input");
   input.addEventListener("input", () => {
@@ -516,7 +522,7 @@ async function shareResult() {
     await navigator.clipboard.writeText(text);
     toast("結果をコピーしました");
   } catch {
-    prompt("この文章をコピーしてください", text);
+    toast("コピーできませんでした");
   }
 }
 
