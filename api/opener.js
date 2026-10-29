@@ -11,6 +11,10 @@ const SYSTEM = `あなたは「今日のLINEゲーム」の会話シナリオ作
 - keywords には会話の重要な単語を3〜5個。
 - 誰かを傷つける話題や露骨な内容は避ける。`;
 
+const ADULT_RULE = `
+- このグループは成人どうしの下ネタOKグループ。言葉遊び・勘違い・あるあるで笑える、ギリギリだが露骨ではないお題にする。
+  直接的な性描写、未成年、実在の人物は絶対に扱わない。`;
+
 const SCHEMA = {
   type: "object",
   additionalProperties: false,
@@ -44,7 +48,7 @@ export default async function handler(req, res) {
 ${avoid ? `\nこのゲームで既に出たお題（似せない）:\n${avoid}` : ""}`;
 
   try {
-    const out = await askJSON({ system: SYSTEM, prompt, schema: SCHEMA, maxTokens: 1500 });
+    const out = await askJSON({ system: body.adult ? SYSTEM + ADULT_RULE : SYSTEM, prompt, schema: SCHEMA, maxTokens: 1500 });
     const messages = (out.messages || []).slice(0, 4).map((m, i) => ({
       name: members.includes(m.name) ? m.name : members[i % members.length],
       text: cut(m.text, 80),

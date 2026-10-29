@@ -37,8 +37,22 @@ function init() {
       selectedTheme = t.id;
       chips.querySelectorAll(".chip").forEach((c) => c.setAttribute("aria-checked", String(c.dataset.id === t.id)));
     };
+    if (t.adult) b.hidden = true;
     chips.appendChild(b);
   }
+
+  // 大人向けテーマは18歳以上のチェックで表示
+  const adult = $("adult-toggle");
+  const syncAdult = () => {
+    chips.querySelectorAll(".chip").forEach((c) => {
+      if (CATEGORIES.find((x) => x.id === c.dataset.id)?.adult) c.hidden = !adult.checked;
+    });
+    if (!adult.checked && CATEGORIES.find((x) => x.id === selectedTheme)?.adult) chips.querySelector(".chip").click();
+    store.set("lg_adult", adult.checked ? "1" : "");
+  };
+  adult.checked = store.get("lg_adult") === "1";
+  adult.onchange = syncAdult;
+  syncAdult();
 
   $("player-name").value = store.get("lg_name") || "";
   renderBest();
@@ -123,7 +137,7 @@ function chooseCategory() {
   if (selectedTheme !== RANDOM.id) return CATEGORIES.find((c) => c.id === selectedTheme);
   // おまかせ：前回と同じテーマにならないように
   const last = store.get("lg_last_cat");
-  const options = [...CATEGORIES, MIX].filter((c) => c.id !== last);
+  const options = [...CATEGORIES, MIX].filter((c) => c.id !== last && !c.adult);
   const c = pick(options);
   store.set("lg_last_cat", c.id);
   return c;
@@ -132,8 +146,17 @@ function chooseCategory() {
 function buildGroups(category) {
   let list;
   if (category.id === MIX.id) {
-    list = shuffle(CATEGORIES.map((c) => pick(c.groups))).slice(0, TOTAL_ROUNDS - 1);
+    list = shuffle(CATEGORIES.filter((c) => !c.adult).map((c) => pick(c.groups))).slice(0, TOTAL_ROUNDS - 1);
     list.splice(Math.floor(Math.random() * TOTAL_ROUNDS), 0, generateGroup());
+  } else if (category.groups.length < TOTAL_ROUNDS) {
+    // グループが少ないテーマは、同じグループの別の話題を交互に出す
+    const pairs = category.groups.map((g) => shuffle(g.s).map((sc) => ({ ...g, s: [sc] })));
+    list = [];
+    for (let i = 0; list.length < TOTAL_ROUNDS && i < 20; i++) {
+      const p = pairs[i % pairs.length].shift();
+      if (p) list.push(p);
+    }
+    while (list.length < TOTAL_ROUNDS) list.push(generateGroup());
   } else {
     list = shuffle(category.groups).slice(0, TOTAL_ROUNDS);
     while (list.length < TOTAL_ROUNDS) list.push(generateGroup());
@@ -212,6 +235,7 @@ async function playRound() {
 function prefetchOpener(group) {
   state.nextOpener = fetchWithTimeout("/api/opener", jsonPost({
     group: group.name,
+    adult: Boolean(state.category.adult),
     members: group.members.map((m) => m.name),
     avoid: state.rounds.map((r) => r.messages.map((m) => m.text).join(" ").slice(0, 60)),
   }), 15000)
@@ -273,6 +297,7 @@ async function judge(round) {
     try {
       const r = await fetchWithTimeout("/api/judge", jsonPost({
         group: g.name,
+        adult: Boolean(state.category.adult),
         me: state.me,
         members: g.members.map((m) => m.name),
         messages: round.messages.map((m) => ({ name: m.member.name, text: m.text })),

@@ -45,6 +45,12 @@ const SCHEMA = {
   },
 };
 
+const ADULT_RULE = `
+## このグループは大人向け（下ネタOK）
+メンバー全員が成人で、下ネタで盛り上がるグループです。言葉遊び・ダジャレ・あるある・勘違いネタなど、
+ギリギリを攻めつつ品のある笑いを高く評価してください。直接的・露骨な性描写は笑いではないので低評価にし、
+未成年・実在の人物・同意のない状況に関する内容は合計10点以下にしてください。リアクションも露骨な表現は使わないこと。`;
+
 const clamp = (v) => Math.max(0, Math.min(25, Math.round(Number(v) || 0)));
 
 export default async function handler(req, res) {
@@ -72,7 +78,7 @@ ${me}: ${reply}
 </player_reply>`;
 
   try {
-    const out = await askJSON({ system: SYSTEM, prompt, schema: SCHEMA });
+    const out = await askJSON({ system: body.adult ? SYSTEM + ADULT_RULE : SYSTEM, prompt, schema: SCHEMA });
     const parts = { humor: clamp(out.humor), wit: clamp(out.wit), surprise: clamp(out.surprise), fit: clamp(out.fit) };
     const reactions = (out.reactions || []).slice(0, 3).map((r, i) => ({
       name: members.includes(r.name) ? r.name : members[i % members.length],

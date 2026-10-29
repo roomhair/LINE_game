@@ -136,6 +136,8 @@ button { font-family: inherit; cursor: pointer; }
 .mode-badge.ai { background: #e2f8ea; color: var(--green-dark); }
 .best { font-size: 12px; color: var(--sub); font-weight: 600; }
 
+.adult-toggle { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--sub); font-weight: 600; }
+.adult-toggle input { width: 18px; height: 18px; accent-color: var(--green); margin: 0; }
 .rules { background: #fff; border: 1.5px solid var(--line); border-radius: 14px; padding: 10px 14px; font-size: 13px; color: #333; }
 .rules summary { font-weight: 700; cursor: pointer; }
 .rules ol { padding-left: 20px; margin: 10px 0 6px; line-height: 1.7; }
