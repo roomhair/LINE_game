@@ -1,0 +1,17 @@
+{
+  "name": "line-game",
+  "private": true,
+  "version": "1.0.0",
+  "description": "今日のLINEゲーム - LINE風トーク画面で返信の面白さを競う短編コミュニケーションゲーム",
+  "type": "module",
+  "scripts": {
+    "dev": "vercel dev",
+    "start": "npx --yes serve ."
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^1.3.0"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
